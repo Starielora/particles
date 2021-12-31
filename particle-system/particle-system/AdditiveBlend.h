@@ -9,6 +9,7 @@ class AdditiveBlend final
 	const GLuint textureId;
 	const GLuint FBO, quadVAO; // TODO quadVAO might not exist
 	const Shader shader;
+	float _factor = 2.f;
 
 public:
 	AdditiveBlend(unsigned int width, unsigned int height, const TexturedQuad& quad)
@@ -23,10 +24,12 @@ public:
 	}
 
 	auto texture() { return textureId; }
+	auto& factor() { return _factor; }
 
 	void draw(GLuint texture1, GLuint texture2)
 	{
 		shader.use();
+		shader.setFloat("factor", _factor);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		gl::checkError();

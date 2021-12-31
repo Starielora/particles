@@ -13,7 +13,7 @@ class Shader
 {
 public:
     unsigned int ID;
-    Shader() : ID(0) // TODO fix - workaround for static shader in particle class
+    Shader()
     {}
     Shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
     {

@@ -13,6 +13,7 @@ class GaussianBlur final
 	const GLuint horizontalFBO, verticalFBO;
 	const GLuint quadVAO; // TODO this might not exist
 	const Shader shader;
+	int _iterations = 9;
 
 public:
 	GaussianBlur(unsigned int width, unsigned int height, const TexturedQuad& quad)
@@ -26,6 +27,7 @@ public:
 	}
 
 	auto texture() { return horizontalBlurTexture; }
+	auto& iterations() { return _iterations; }
 
 	void draw(GLuint texture)
 	{
@@ -54,7 +56,7 @@ public:
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr);
 		gl::checkError();
 
-		for (auto i = 0u; i < 9; ++i)
+		for (auto i = 0u; i < _iterations; ++i)
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, horizontalFBO);
 			gl::checkError();

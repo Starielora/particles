@@ -46,12 +46,17 @@ class InstancedParticleSystem final
 
 	struct
 	{
-		glm::vec4 startColor = { 0.f, 1.f, 0.f, 1.f };
-		glm::vec4 endColor = { 1.f, 1.f, 1.f, 1.f };
+		glm::vec3 initialVelocity = { 0.f, 0.f, 0.f };
+		glm::vec3 acceleration = { 0.f, 0.f, 0.f };
+		glm::vec4 startColor = { 0.f, 0.5f, 1.f, 1.f };
+		glm::vec4 endColor = { 1.f, 0.f, 0.f, 1.f };
 		int totalLifetimeSeconds = 5;
-		int spawnCount = 5;
+		int spawnCount = 50;
 		float scale = 0.0025f;
-		int particleShape = 0; // 0 - square, 1 - circle // TODO enum or sth (fast impl for imgui exposure)...
+		int particleShape = 1; // 0 - square, 1 - circle // TODO enum or sth (fast impl for imgui exposure)...
+		float shapeThickness = 0.8f;
+		bool randomVelocity = true;
+		bool randomAcceleration = false;
 	} properties;
 
 	const std::size_t particlesLimit;
@@ -136,7 +141,7 @@ public:
 	void draw(glm::mat4 view, glm::mat4 projection, float currentTime)
 	{
 		auto instanceIndex = std::size_t{ 0 };
-		for (auto particle = aliveParticles.rbegin(); particle != aliveParticles.rend(); particle++)
+		for (auto particle = aliveParticles.begin(); particle != aliveParticles.end(); particle++)
 		{
 			const auto particleLifetime = currentTime - particle->creationTime;
 			particle->isAlive = particleLifetime < particle->totalLifeTime;
@@ -166,6 +171,7 @@ public:
 		aliveParticles.remove_if([](const auto& p) { return !p.isAlive; });
 
 		auto& shader = properties.particleShape == 0 ? squareShader : circleShader;
+		auto thickness = properties.shapeThickness;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		gl::checkError();
@@ -178,6 +184,10 @@ public:
 		shader.use();
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
+		if (properties.particleShape == 1) // TODO remove after adding thickness to other shapes
+		{
+			shader.setFloat("thickness", thickness);
+		}
 
 		const auto dataSize = sizeof(InstanceData) * instanceIndex;
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
@@ -201,12 +211,30 @@ public:
 	auto& scale() { return properties.scale; }
 	auto aliveParticlesCount() { return aliveParticles.size(); }
 	auto& particleShape() { return properties.particleShape; }
+	auto& shapeThickness() { return properties.shapeThickness; }
+	auto& initialVelocity() { return properties.initialVelocity; }
+	auto& acceleration() { return properties.acceleration; }
+	auto& randomVelocity() { return properties.randomVelocity; }
+	auto& randomAcceleration() { return properties.randomAcceleration; }
 
 	auto texture() { return textureId; }
 
 	void emit(glm::vec3 worldPos, float t)
 	{
-		auto& [startColor, endColor, totalLifetimeSeconds, spawnCount, scale, shape] = properties;
+		// structured binding
+		auto&
+			[ initialVelocity
+			, acceleration
+			, startColor
+			, endColor
+			, totalLifetimeSeconds
+			, spawnCount
+			, scale
+			, shape
+			, thickness
+			, randomVelocity
+			, randomAcceleration
+		] = properties;
 
 		for (auto i = 0; i < spawnCount; i++)
 		{
@@ -218,8 +246,8 @@ public:
 
 			auto particle = Particle{};
 			particle.position = worldPos;
-			particle.velocity = { rng::Float(), rng::Float(), rng::Float() };
-			particle.acceleration = { 0.f, 0.f, 0.f };
+			particle.velocity = randomVelocity ? glm::vec3{ rng::Float(), rng::Float(), rng::Float() } : initialVelocity;
+			particle.acceleration = randomAcceleration ? glm::vec3{ rng::Float() / 10.f, rng::Float() / 10.f, rng::Float() / 10.f } : acceleration;
 			particle.creationTime = t;
 			particle.totalLifeTime = totalLifetimeSeconds;
 			particle.rotationSpeed = rng::Float() * 10000;

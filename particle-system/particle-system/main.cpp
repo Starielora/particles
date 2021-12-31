@@ -124,6 +124,7 @@ int main()
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
     bool show_demo_window = false;
+    bool blur = true, bloom = true;
 
     while (!glfwWindowShouldClose(window))
     {
@@ -150,12 +151,16 @@ int main()
         }
 
         // blur / bloom
+        if (blur)
         {
             gaussianBlur.draw(particleSystem.texture());
             finalTexture = gaussianBlur.texture();
 
-            additiveBlend.draw(particleSystem.texture(), gaussianBlur.texture());
-            finalTexture = additiveBlend.texture();
+            if (bloom)
+            {
+                additiveBlend.draw(particleSystem.texture(), gaussianBlur.texture());
+                finalTexture = additiveBlend.texture();
+            }
         }
 
         {
@@ -193,6 +198,7 @@ int main()
                 ImGui::Begin("FPS");
                 ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
                 ImGui::PlotLines("", &fpsValues[0], fpsValues.size(), 0, nullptr, 1.f, 144.0f, ImVec2(0, 100.0f));
+                ImGui::PlotLines("draw [ms]", &particlesDrawTimes[0], particlesDrawTimes.size(), 0, nullptr, 0.f, 16.f, ImVec2(0, 100.f));
                 ImGui::End();
             }
 
@@ -202,15 +208,46 @@ int main()
                 ImGui::Text((std::string("Alive particles: ") + std::to_string(particleSystem.aliveParticlesCount())).c_str());
                 ImGui::ColorEdit4("Start", &particleSystem.startColor()[0]);
                 ImGui::ColorEdit4("End", &particleSystem.endColor()[0]);
-                ImGui::SliderFloat("Scale", &particleSystem.scale(), 0.f, 1.f);
-                ImGui::SliderInt("Spawn count", &particleSystem.spawnCount(), 0, 1000);
+
+                ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25);
+                ImGui::Text("Initial velocity");
+                ImGui::SameLine();
+                ImGui::Checkbox("Random velocity", &particleSystem.randomVelocity());
+                ImGui::BeginDisabled(particleSystem.randomVelocity());
+                ImGui::DragFloat("vx", &particleSystem.initialVelocity()[0], 0.0001, -0.05f, 0.05f);
+                ImGui::SameLine();
+                ImGui::DragFloat("vy", &particleSystem.initialVelocity()[1], 0.0001, -0.05f, 0.05f);
+                ImGui::SameLine();
+                ImGui::DragFloat("vz", &particleSystem.initialVelocity()[2], 0.0001, -0.05f, 0.05f);
+                ImGui::EndDisabled();
+
+                ImGui::Text("Acceleration");
+                ImGui::SameLine();
+                ImGui::Checkbox("Random acceleration", &particleSystem.randomAcceleration());
+                ImGui::BeginDisabled(particleSystem.randomAcceleration());
+                ImGui::DragFloat("ax", &particleSystem.acceleration()[0], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                ImGui::SameLine();
+                ImGui::DragFloat("ay", &particleSystem.acceleration()[1], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                ImGui::SameLine();
+                ImGui::DragFloat("az", &particleSystem.acceleration()[2], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                ImGui::EndDisabled();
+                ImGui::PopItemWidth();
+
+                ImGui::SliderFloat("Scale", &particleSystem.scale(), 0.f, 0.05f);
+                ImGui::SliderInt("Spawn count", &particleSystem.spawnCount(), 1, 1000);
                 ImGui::SliderInt("Life time [s]", &particleSystem.totalLifetimeSeconds(), 0, 100);
-                ImGui::PlotLines("draw [ms]", &particlesDrawTimes[0], particlesDrawTimes.size(), 0, nullptr, 0.f, 16.f, ImVec2(0, 100.f));
                 ImGui::RadioButton("Square", &particleSystem.particleShape(), 0); ImGui::SameLine(); ImGui::RadioButton("Circle", &particleSystem.particleShape(), 1);
-                //ImGui::PlotLines("vertices sub data [bytes]", &subDataBytes[0], subDataBytes.size(), 0, nullptr, 0.f, 1e7, ImVec2(0, 100.f));
-                //ImGui::PlotLines("addQuads [ms]", &addQuadsTimes[0], addQuadsTimes.size(), 0, nullptr, 0.f, 50, ImVec2(0, 100.f));
-                //ImGui::PlotLines("iteration [ms]", &iterationTimes[0], iterationTimes.size(), 0, nullptr, 0.f, 50, ImVec2(0, 100.f));
-                //ImGui::PlotLines("gl [ms]", &glStuffTimes[0], glStuffTimes.size(), 0, nullptr, 0.f, 50, ImVec2(0, 100.f));
+                ImGui::SliderFloat("Thickness", &particleSystem.shapeThickness(), 0.0f, 1.f);
+
+                ImGui::Checkbox("Gaussian blur", &blur);
+                ImGui::BeginDisabled(!blur);
+                ImGui::SliderInt("Iterations", &gaussianBlur.iterations(), 1, 20);
+                ImGui::Checkbox("Bloom", &bloom);
+                ImGui::BeginDisabled(!bloom);
+                ImGui::SliderFloat("Factor", &additiveBlend.factor(), 0.0f, 10.f);
+                ImGui::EndDisabled();
+                ImGui::EndDisabled();
+
                 ImGui::End();
             }
 
