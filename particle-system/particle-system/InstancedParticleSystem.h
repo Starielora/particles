@@ -2,6 +2,7 @@
 
 #include "shader.h"
 #include "Timer.h"
+#include "OpenGLUtils.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>
@@ -24,7 +25,7 @@ namespace rng
 
 class InstancedParticleSystem final
 {
-	const GLuint VAO, VBO, EBO, instanceVBO;
+	const GLuint VAO, VBO, EBO, instanceVBO, textureId, FBO;
 	const Shader squareShader, circleShader;
 
 	struct Particle
@@ -42,44 +43,6 @@ class InstancedParticleSystem final
 	};
 
 	std::list<Particle> aliveParticles;
-
-
-	void glCheckError_(const char* file, int line)
-	{
-		GLenum errorCode;
-		while ((errorCode = glGetError()) != GL_NO_ERROR)
-		{
-			std::string error;
-			switch (errorCode)
-			{
-			case GL_INVALID_ENUM:                  error = "INVALID_ENUM"; break;
-			case GL_INVALID_VALUE:                 error = "INVALID_VALUE"; break;
-			case GL_INVALID_OPERATION:             error = "INVALID_OPERATION"; break;
-			case GL_STACK_OVERFLOW:                error = "STACK_OVERFLOW"; break;
-			case GL_STACK_UNDERFLOW:               error = "STACK_UNDERFLOW"; break;
-			case GL_OUT_OF_MEMORY:                 error = "OUT_OF_MEMORY"; break;
-			case GL_INVALID_FRAMEBUFFER_OPERATION: error = "INVALID_FRAMEBUFFER_OPERATION"; break;
-			}
-			throw std::runtime_error(error + " | " + std::string(file) + " (" + std::to_string(line) + ")");
-		}
-	}
-#define glCheckError() glCheckError_(__FILE__, __LINE__) 
-
-	GLuint genVertexArray()
-	{
-		auto VAO = GLuint{ 0 };
-		glGenVertexArrays(1, &VAO);
-		glCheckError();
-		return VAO;
-	}
-
-	GLuint genBuffer()
-	{
-		auto buffer = GLuint{ 0 };
-		glGenBuffers(1, &buffer);
-		glCheckError();
-		return buffer;
-	}
 
 	struct
 	{
@@ -102,11 +65,13 @@ class InstancedParticleSystem final
 	std::vector<InstanceData> instancesData;
 
 public:
-	InstancedParticleSystem(unsigned int pool)
-		: VAO(genVertexArray())
-		, VBO(genBuffer())
-		, EBO(genBuffer())
-		, instanceVBO(genBuffer())
+	InstancedParticleSystem(unsigned int pool, unsigned int width, unsigned int height)
+		: VAO(gl::genVertexArray())
+		, VBO(gl::genBuffer())
+		, EBO(gl::genBuffer())
+		, instanceVBO(gl::genBuffer())
+		, textureId(gl::genTexture(width, height))
+		, FBO(gl::genFramebuffer(textureId))
 		, circleShader("D:/dev/particle-system/assets/CircleOnQuad_Instanced.vert", "D:/dev/particle-system/assets/CircleOnQuad_Instanced.frag")
 		, squareShader("D:/dev/particle-system/assets/Square_Instanced.vert", "D:/dev/particle-system/assets/Square_Instanced.frag")
 		, particlesLimit(pool)
@@ -139,7 +104,6 @@ public:
 
 		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
 		glEnableVertexAttribArray(0);
-
 
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * particlesLimit, nullptr, GL_DYNAMIC_DRAW);
@@ -203,16 +167,31 @@ public:
 
 		auto& shader = properties.particleShape == 0 ? squareShader : circleShader;
 
+		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+		gl::checkError();
+
+		glClearColor(0.f, 0.f, 0.f, 0.f);
+		gl::checkError();
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		gl::checkError();
+
 		shader.use();
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
 
 		const auto dataSize = sizeof(InstanceData) * instanceIndex;
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
+		gl::checkError();
 		glBufferSubData(GL_ARRAY_BUFFER, 0, dataSize, instancesData.data());
+		gl::checkError();
 
 		glBindVertexArray(VAO);
+		gl::checkError();
 		glDrawElementsInstanced(GL_TRIANGLES, 6, GL_UNSIGNED_INT, nullptr, instanceIndex);
+		gl::checkError();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gl::checkError();
 	}
 
 	auto& startColor() { return properties.startColor; }
@@ -222,6 +201,8 @@ public:
 	auto& scale() { return properties.scale; }
 	auto aliveParticlesCount() { return aliveParticles.size(); }
 	auto& particleShape() { return properties.particleShape; }
+
+	auto texture() { return textureId; }
 
 	void emit(glm::vec3 worldPos, float t)
 	{
@@ -248,5 +229,15 @@ public:
 			particle.isAlive = true;
 			aliveParticles.push_back(particle);
 		}
+	}
+
+	void resize(unsigned int width, unsigned int height)
+	{
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		gl::checkError();
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, nullptr);
+		gl::checkError();
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		gl::checkError();
 	}
 };
