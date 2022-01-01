@@ -26,7 +26,7 @@ namespace rng
 class InstancedParticleSystem final
 {
 	const GLuint VAO, VBO, EBO, instanceVBO, textureId, FBO;
-	const Shader squareShader, circleShader;
+	const Shader squareShader, circleShader, triangleShader;
 
 	struct Particle
 	{
@@ -69,6 +69,17 @@ class InstancedParticleSystem final
 
 	std::vector<InstanceData> instancesData;
 
+	auto& getShader()
+	{
+		auto id = properties.particleShape;
+		if (id == 0)
+			return squareShader;
+		else if (id == 1)
+			return circleShader;
+		else
+			return triangleShader;
+	}
+
 public:
 	InstancedParticleSystem(unsigned int pool, unsigned int width, unsigned int height)
 		: VAO(gl::genVertexArray())
@@ -79,6 +90,7 @@ public:
 		, FBO(gl::genFramebuffer(textureId))
 		, circleShader("D:/dev/particle-system/assets/CircleOnQuad_Instanced.vert", "D:/dev/particle-system/assets/CircleOnQuad_Instanced.frag")
 		, squareShader("D:/dev/particle-system/assets/Square_Instanced.vert", "D:/dev/particle-system/assets/Square_Instanced.frag")
+		, triangleShader("D:/dev/particle-system/assets/Triangle_Instanced.vert", "D:/dev/particle-system/assets/Triangle_Instanced.frag")
 		, particlesLimit(pool)
 	{
 		assert(VAO != 0);
@@ -151,14 +163,14 @@ public:
 				const auto progress = particleLifetime / particle->totalLifeTime;
 
 				// translation like this is a lot faster than using glm::translate on eye matrix
-				auto transformation = glm::mat4(glm::vec4{ 1.f, 0.f, 0.f, 0.f },
-											    glm::vec4{ 0.f, 1.f, 0.f, 0.f },
-											    glm::vec4{ 0.f, 0.f, 1.f, 0.f },
+				auto transformation = glm::mat4(glm::vec4{ particle->scale, 0.f, 0.f, 0.f },
+											    glm::vec4{ 0.f, particle->scale, 0.f, 0.f },
+											    glm::vec4{ 0.f, 0.f, particle->scale, 0.f },
 											    glm::vec4{ particle->position, 1.f });
 
 				// TODO slow af, try quaternions
 				//transformation = glm::rotate(transformation, zRotation, glm::vec3{ 0.f, 0.f, 1.f });
-				transformation = glm::scale(transformation, glm::vec3{ particle->scale, particle->scale, particle->scale });
+				//transformation = glm::scale(transformation, glm::vec3{ particle->scale, particle->scale, particle->scale });
 
 				auto& instanceData = instancesData[instanceIndex++];
 				instanceData.color = glm::lerp(particle->startColor, particle->endColor, progress);
@@ -170,7 +182,8 @@ public:
 		}
 		aliveParticles.remove_if([](const auto& p) { return !p.isAlive; });
 
-		auto& shader = properties.particleShape == 0 ? squareShader : circleShader;
+		auto& shader = getShader();
+
 		auto thickness = properties.shapeThickness;
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
@@ -184,10 +197,8 @@ public:
 		shader.use();
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
-		if (properties.particleShape == 1) // TODO remove after adding thickness to other shapes
-		{
-			shader.setFloat("thickness", thickness);
-		}
+		shader.setFloat("thickness", thickness);
+
 
 		const auto dataSize = sizeof(InstanceData) * instanceIndex;
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);

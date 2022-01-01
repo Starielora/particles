@@ -10,10 +10,15 @@ void main()
 {
     float x = localPosition.x;
     float y = localPosition.y;
-    float lowBound = -1 + thickness;
-    float highBound = 1 - thickness;
 
-    if (x > lowBound && x < highBound && y > lowBound && y < highBound)
+    // outer triangle
+    float x1 = (y - 1.0) / 2.0; // point on left line
+    float x2 = (y - 1.0) / -2.0; // point on right line
+
+    float d1 = x1 - x;
+    float d2 = x2 - x;
+
+    if (d1 * d2 > 0) // if both have same sign
         discard;
 
     FragColor = particleColor;

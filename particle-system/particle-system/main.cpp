@@ -236,7 +236,7 @@ int main()
                 ImGui::SliderFloat("Scale", &particleSystem.scale(), 0.f, 0.05f);
                 ImGui::SliderInt("Spawn count", &particleSystem.spawnCount(), 1, 1000);
                 ImGui::SliderInt("Life time [s]", &particleSystem.totalLifetimeSeconds(), 0, 100);
-                ImGui::RadioButton("Square", &particleSystem.particleShape(), 0); ImGui::SameLine(); ImGui::RadioButton("Circle", &particleSystem.particleShape(), 1);
+                ImGui::RadioButton("Square", &particleSystem.particleShape(), 0); ImGui::SameLine(); ImGui::RadioButton("Circle", &particleSystem.particleShape(), 1); ImGui::SameLine(); ImGui::RadioButton("Triangle", &particleSystem.particleShape(), 2);
                 ImGui::SliderFloat("Thickness", &particleSystem.shapeThickness(), 0.0f, 1.f);
 
                 ImGui::Checkbox("Gaussian blur", &blur);

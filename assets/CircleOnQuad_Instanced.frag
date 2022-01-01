@@ -12,7 +12,7 @@ void main()
     //float thickness = 0.5;
 
     float length = length(localPosition);
-    if (length > 1.0 || length < thickness)
+    if (length < (1 - thickness) || length > 1.0)
         discard;
 
     FragColor = particleColor;
