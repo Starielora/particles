@@ -2,7 +2,7 @@
 
 #include "OpenGLUtils.h"
 #include "TexturedQuad.h"
-#include "shader.h"
+#include "Shader.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtx/compatibility.hpp>

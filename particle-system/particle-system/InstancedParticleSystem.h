@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.h"
+#include "Shader.h"
 #include "Timer.h"
 #include "OpenGLUtils.h"
 
@@ -10,6 +10,7 @@
 
 #include <list>
 #include <random>
+#include <iostream>
 
 namespace rng
 {

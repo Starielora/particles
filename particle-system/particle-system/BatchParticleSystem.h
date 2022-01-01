@@ -1,6 +1,6 @@
 #pragma once
 
-#include "shader.h"
+#include "Shader.h"
 #include "Timer.h"
 
 #include <glm/glm.hpp>
