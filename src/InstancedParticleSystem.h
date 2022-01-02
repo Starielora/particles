@@ -226,8 +226,8 @@ public:
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		gl::checkError();
-		glUseProgram(0);
-		gl::checkError();
+		//glUseProgram(0);
+		//gl::checkError();
 	}
 
 	auto& startColor() { return properties.startColor; }

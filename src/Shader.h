@@ -24,7 +24,6 @@ namespace
 			return GL_GEOMETRY_SHADER;
 
 		assert(false); // unknown type
-		return 0;
 	}
 
 	std::string readFile(std::filesystem::path path)

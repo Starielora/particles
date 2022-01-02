@@ -72,7 +72,7 @@ int main() try
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "particles", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "particle-system", NULL, NULL);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -174,8 +174,8 @@ int main() try
                 glActiveTexture(GL_TEXTURE0); gl::checkError();
                 glBindTexture(GL_TEXTURE_2D, finalTexture); gl::checkError();
                 glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); gl::checkError();
-                glUseProgram(0);
-                gl::checkError();
+                //glUseProgram(0);
+                //gl::checkError();
             }
 
             {
