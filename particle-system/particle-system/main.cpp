@@ -48,6 +48,7 @@ std::vector<float> particlesDrawTimes;
 
 InstancedParticleSystem* particleSystemPtr;
 //BatchParticleSystem* particleSystemPtr;
+//SimpleParticleSystem* particleSystemPtr;
 GaussianBlur* gaussianBlurPtr;
 AdditiveBlend* additiveBlendPtr;
 
@@ -102,6 +103,7 @@ int main() try
     const auto quad = TexturedQuad{};
     auto particleSystem = InstancedParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
     //auto particleSystem = BatchParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
+    //auto particleSystem = SimpleParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
     auto gaussianBlur = GaussianBlur(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
     auto additiveBlend = AdditiveBlend(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
 
@@ -273,6 +275,7 @@ catch (const std::exception& e)
 
 //void processInput(GLFWwindow* window, BatchParticleSystem& particleSystem, float t)
 void processInput(GLFWwindow* window, InstancedParticleSystem& particleSystem, float t)
+//void processInput(GLFWwindow* window, SimpleParticleSystem& particleSystem, float t)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
