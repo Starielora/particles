@@ -74,7 +74,7 @@ public:
         , EBO(gl::genBuffer())
         , textureId(gl::genTexture(width, height))
         , FBO(gl::genFramebuffer(textureId))
-        , shader("D:/dev/particle-system/assets/simpleParticleSystem.glsl") // TODO fix paths
+        , shader("simpleParticleSystem.glsl")
         , particlesLimit(poolCount)
     {
         assert(VAO != 0);

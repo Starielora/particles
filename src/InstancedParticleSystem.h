@@ -89,9 +89,9 @@ public:
 		, instanceVBO(gl::genBuffer())
 		, textureId(gl::genTexture(width, height))
 		, FBO(gl::genFramebuffer(textureId))
-		, circleShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/circle.frag")
-		, squareShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/square.frag")
-		, triangleShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/triangle.frag")
+		, circleShader("instanced.vert", "circle.frag")
+		, squareShader("instanced.vert", "square.frag")
+		, triangleShader("instanced.vert", "triangle.frag")
 		, particlesLimit(pool)
 	{
 		assert(VAO != 0);

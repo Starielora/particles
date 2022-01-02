@@ -59,14 +59,42 @@ namespace
 		return id;
 	}
 
+	auto preprocessPath(std::filesystem::path path)
+	{
+		if (!path.has_parent_path())
+		{
+			// move from {root}/build/Release to {root}/assets on Windows
+			// TODO build list for possible paths
+			if (std::filesystem::exists("../../assets"))
+			{
+				return std::filesystem::path("../../assets") / path;
+			}
+			else if (std::filesystem::exists("../assets"))
+			{
+				return std::filesystem::path("../assets") / path;
+			}
+			else
+			{
+				throw std::runtime_error("Could not open file:" + path.string());
+			}
+		}
+
+		return path;
+	}
+
 	auto loadShaderSources(std::filesystem::path combinedShader)
 	{
+		combinedShader = preprocessPath(combinedShader);
+
 		const auto TYPE_STR = std::string("#type "); // constexpr :(
 		auto shadersSources = std::unordered_map<unsigned, std::string>{};
 
 		auto file = std::ifstream(combinedShader.c_str());
 
-		assert(file.is_open());
+		if (!file.is_open())
+		{
+			throw std::runtime_error("Could not open file:" + combinedShader.string());
+		}
 
 		unsigned currentShaderType = 0;
 		for (auto line = std::string{}; std::getline(file, line);)
@@ -90,6 +118,9 @@ namespace
 
 	auto loadShaderSources(std::filesystem::path vertex, std::filesystem::path fragment)
 	{
+		vertex = preprocessPath(vertex);
+		fragment = preprocessPath(fragment);
+
 		auto shadersSources = std::unordered_map<unsigned, std::string>{};
 		shadersSources[GL_VERTEX_SHADER] = readFile(vertex);
 		shadersSources[GL_FRAGMENT_SHADER] = readFile(fragment);

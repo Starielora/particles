@@ -79,7 +79,7 @@ public:
 		, EBO(gl::genBuffer())
 		, textureId(gl::genTexture(width, height))
 		, FBO(gl::genFramebuffer(textureId))
-		, shader("D:/dev/particle-system/assets/batchParticleSystem.glsl")
+		, shader("batchParticleSystem.glsl")
 		, particlesLimit(poolCount)
 	{
 		assert(VAO != 0);

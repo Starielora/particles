@@ -22,7 +22,7 @@ public:
 		, horizontalFBO(gl::genFramebuffer(horizontalBlurTexture))
 		, verticalFBO(gl::genFramebuffer(verticalBlurTexture))
 		, quadVAO(quad.VAO())
-		, shader("D:/dev/particle-system/assets/blur.glsl")
+		, shader("blur.glsl")
 	{
 	}
 

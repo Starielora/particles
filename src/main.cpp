@@ -97,7 +97,7 @@ int main() try
 
     // scope to call glDelete's before glfwTerminate();
     {
-        auto quadTextureShader = Shader("D:/dev/particle-system/assets/texture.glsl");
+        auto quadTextureShader = Shader("texture.glsl");
         quadTextureShader.use();
         quadTextureShader.setInt("sceneTexture", 0);
 
@@ -272,11 +272,12 @@ int main() try
     }
 
     glfwTerminate();
-    return 0;
+    return EXIT_SUCCESS;
 }
 catch (const std::exception& e)
 {
     std::cerr<< e.what() << std::endl;
+    return EXIT_FAILURE;
 }
 
 //void processInput(GLFWwindow* window, BatchParticleSystem& particleSystem, float t)
