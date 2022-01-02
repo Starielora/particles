@@ -16,7 +16,7 @@ public:
 		: textureId(gl::genTexture(width, height))
 		, FBO(gl::genFramebuffer(textureId))
 		, quadVAO(quad.VAO())
-		, shader("D:/dev/particle-system/assets/additiveBlend.vert", "D:/dev/particle-system/assets/additiveBlend.frag")
+		, shader("D:/dev/particle-system/assets/additiveBlend.glsl")
 	{
 		shader.use();
 		shader.setInt("scene", 0);

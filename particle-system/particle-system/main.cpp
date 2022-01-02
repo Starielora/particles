@@ -9,7 +9,6 @@
 //#include "SimpleParticleSystem.h"
 //#include "BatchParticleSystem.h"
 #include "InstancedParticleSystem.h"
-#include "Containers.h"
 #include "Timer.h"
 #include "GaussianBlur.h"
 #include "AdditiveBlend.h"
@@ -48,6 +47,7 @@ std::vector<float> fpsValues(100);
 std::vector<float> particlesDrawTimes;
 
 InstancedParticleSystem* particleSystemPtr;
+//BatchParticleSystem* particleSystemPtr;
 GaussianBlur* gaussianBlurPtr;
 AdditiveBlend* additiveBlendPtr;
 
@@ -57,7 +57,7 @@ void insertFpsVal(float v)
     fpsValues.push_back(v);
 }
 
-int main()
+int main() try
 {
     particlesDrawTimes.resize(1000);
 
@@ -93,15 +93,15 @@ int main()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    auto quadTextureShader = Shader("D:/dev/particle-system/assets/vertexShader.glsl", "D:/dev/particle-system/assets/fragmentShader.glsl");
+    auto quadTextureShader = Shader("D:/dev/particle-system/assets/texture.glsl");
     quadTextureShader.use();
     quadTextureShader.setInt("sceneTexture", 0);
 
-    auto containers = Containers();
     // TODO has to be after opengl init because constructor uses opengl
     //auto particleSystem = BatchParticleSystem(500e3);
     const auto quad = TexturedQuad{};
     auto particleSystem = InstancedParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
+    //auto particleSystem = BatchParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
     auto gaussianBlur = GaussianBlur(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
     auto additiveBlend = AdditiveBlend(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
 
@@ -265,6 +265,10 @@ int main()
 
     glfwTerminate();
     return 0;
+}
+catch (const std::exception& e)
+{
+    std::cerr<< e.what() << std::endl;
 }
 
 //void processInput(GLFWwindow* window, BatchParticleSystem& particleSystem, float t)

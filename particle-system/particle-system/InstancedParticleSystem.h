@@ -89,9 +89,9 @@ public:
 		, instanceVBO(gl::genBuffer())
 		, textureId(gl::genTexture(width, height))
 		, FBO(gl::genFramebuffer(textureId))
-		, circleShader("D:/dev/particle-system/assets/CircleOnQuad_Instanced.vert", "D:/dev/particle-system/assets/CircleOnQuad_Instanced.frag")
-		, squareShader("D:/dev/particle-system/assets/Square_Instanced.vert", "D:/dev/particle-system/assets/Square_Instanced.frag")
-		, triangleShader("D:/dev/particle-system/assets/Triangle_Instanced.vert", "D:/dev/particle-system/assets/Triangle_Instanced.frag")
+		, circleShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/circle.frag")
+		, squareShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/square.frag")
+		, triangleShader("D:/dev/particle-system/assets/instanced.vert", "D:/dev/particle-system/assets/triangle.frag")
 		, particlesLimit(pool)
 	{
 		assert(VAO != 0);
@@ -185,8 +185,6 @@ public:
 
 		auto& shader = getShader();
 
-		auto thickness = properties.shapeThickness;
-
 		glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 		gl::checkError();
 
@@ -198,8 +196,7 @@ public:
 		shader.use();
 		shader.setMat4("view", view);
 		shader.setMat4("projection", projection);
-		shader.setFloat("thickness", thickness);
-
+		shader.setFloat("thickness", properties.shapeThickness);
 
 		const auto dataSize = sizeof(InstanceData) * instanceIndex;
 		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
