@@ -164,9 +164,8 @@ public:
 
 	~Shader()
 	{
-		// TODO fix
-		//glDeleteProgram(_id);
-		//gl::checkError();
+		glDeleteProgram(_id);
+		gl::checkError();
 	}
 
 	void use() const

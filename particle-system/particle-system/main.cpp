@@ -46,6 +46,7 @@ float lastFrame = 0.0f;
 std::vector<float> fpsValues(100);
 std::vector<float> particlesDrawTimes;
 
+// TODO send help
 InstancedParticleSystem* particleSystemPtr;
 //BatchParticleSystem* particleSystemPtr;
 //SimpleParticleSystem* particleSystemPtr;
@@ -94,176 +95,181 @@ int main() try
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    auto quadTextureShader = Shader("D:/dev/particle-system/assets/texture.glsl");
-    quadTextureShader.use();
-    quadTextureShader.setInt("sceneTexture", 0);
-
-    // TODO has to be after opengl init because constructor uses opengl
-    //auto particleSystem = BatchParticleSystem(500e3);
-    const auto quad = TexturedQuad{};
-    auto particleSystem = InstancedParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
-    //auto particleSystem = BatchParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
-    //auto particleSystem = SimpleParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
-    auto gaussianBlur = GaussianBlur(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
-    auto additiveBlend = AdditiveBlend(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
-
-    // TODO send help
-    particleSystemPtr = &particleSystem;
-    gaussianBlurPtr = &gaussianBlur;
-    additiveBlendPtr = &additiveBlend;
-
-    // Setup Dear ImGui context
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.FontGlobalScale = 1.25f;
-
-    // Setup Dear ImGui style
-    ImGui::StyleColorsClassic();
-
-    // Setup Platform/Renderer backends
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330 core");
-
-    bool show_demo_window = false;
-    bool blur = true, bloom = true;
-
-    while (!glfwWindowShouldClose(window))
+    // scope to call glDelete's before glfwTerminate();
     {
-        float currentFrame = glfwGetTime();
-        deltaTime = currentFrame - lastFrame;
-        lastFrame = currentFrame;
+        auto quadTextureShader = Shader("D:/dev/particle-system/assets/texture.glsl");
+        quadTextureShader.use();
+        quadTextureShader.setInt("sceneTexture", 0);
 
-        insertFpsVal(1 / deltaTime);
+        // TODO has to be after opengl init because constructor uses opengl
+        //auto particleSystem = BatchParticleSystem(500e3);
+        const auto quad = TexturedQuad{};
+        auto particleSystem = InstancedParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
+        //auto particleSystem = BatchParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
+        //auto particleSystem = SimpleParticleSystem(500e3, CURRENT_WIDTH, CURRENT_HEIGHT);
+        auto gaussianBlur = GaussianBlur(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
+        auto additiveBlend = AdditiveBlend(CURRENT_WIDTH, CURRENT_HEIGHT, quad);
 
-        processInput(window, particleSystem, currentFrame);
+        // TODO send help
+        particleSystemPtr = &particleSystem;
+        gaussianBlurPtr = &gaussianBlur;
+        additiveBlendPtr = &additiveBlend;
 
-        const auto view = camera.view();
-        const auto projection = camera.projection(CURRENT_WIDTH, CURRENT_HEIGHT);
+        // Setup Dear ImGui context
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGuiIO& io = ImGui::GetIO(); (void)io;
+        io.FontGlobalScale = 1.25f;
 
-        glEnable(GL_DEPTH_TEST);
+        // Setup Dear ImGui style
+        ImGui::StyleColorsClassic();
 
-        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // Setup Platform/Renderer backends
+        ImGui_ImplGlfw_InitForOpenGL(window, true);
+        ImGui_ImplOpenGL3_Init("#version 330 core");
 
-        auto finalTexture = particleSystem.texture();
+        bool show_demo_window = false;
+        bool blur = true, bloom = true;
+
+        while (!glfwWindowShouldClose(window))
         {
-            const auto timer = Timer<std::chrono::milliseconds>(particlesDrawTimes);
-            particleSystem.draw(view, projection, currentFrame);
-        }
+            float currentFrame = glfwGetTime();
+            deltaTime = currentFrame - lastFrame;
+            lastFrame = currentFrame;
 
-        // blur / bloom
-        if (blur)
-        {
-            gaussianBlur.draw(particleSystem.texture());
-            finalTexture = gaussianBlur.texture();
+            insertFpsVal(1 / deltaTime);
 
-            if (bloom)
+            processInput(window, particleSystem, currentFrame);
+
+            const auto view = camera.view();
+            const auto projection = camera.projection(CURRENT_WIDTH, CURRENT_HEIGHT);
+
+            glEnable(GL_DEPTH_TEST);
+
+            glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            auto finalTexture = particleSystem.texture();
             {
-                additiveBlend.draw(particleSystem.texture(), gaussianBlur.texture());
-                finalTexture = additiveBlend.texture();
-            }
-        }
-
-        {
-            quadTextureShader.use();
-            glBindVertexArray(quad.VAO());
-            glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, finalTexture);
-            glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        }
-        
-        {
-            ImGui_ImplOpenGL3_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
-
-            if (show_demo_window)
-                ImGui::ShowDemoWindow(&show_demo_window);
-
-            // camera ui
-            {
-                static float f = 0.0f;
-                static int counter = 0;
-
-                ImGui::Begin("Camera");
-
-                ImGui::SliderFloat("Movement speed", &camera.speedMultiplier(), 0.0f, 100.0f);
-                ImGui::SliderFloat3("Position", &camera.position()[0], -50.f, 50.f);
-                ImGui::SliderFloat("FOV", &camera.fov(), 1.0f, 90.0f);
-
-                ImGui::End();
+                const auto timer = Timer<std::chrono::milliseconds>(particlesDrawTimes);
+                particleSystem.draw(view, projection, currentFrame);
             }
 
-            // fps plot
+            // blur / bloom
+            if (blur)
             {
-                ImGui::Begin("FPS");
-                ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-                ImGui::PlotLines("", &fpsValues[0], fpsValues.size(), 0, nullptr, 1.f, 144.0f, ImVec2(0, 100.0f));
-                ImGui::PlotLines("draw [ms]", &particlesDrawTimes[0], particlesDrawTimes.size(), 0, nullptr, 0.f, 16.f, ImVec2(0, 100.f));
-                ImGui::End();
+                gaussianBlur.draw(particleSystem.texture());
+                finalTexture = gaussianBlur.texture();
+
+                if (bloom)
+                {
+                    additiveBlend.draw(particleSystem.texture(), gaussianBlur.texture());
+                    finalTexture = additiveBlend.texture();
+                }
             }
 
-            // particle system
             {
-                ImGui::Begin("Particle system");
-                ImGui::Text((std::string("Alive particles: ") + std::to_string(particleSystem.aliveParticlesCount())).c_str());
-                ImGui::ColorEdit4("Start", &particleSystem.startColor()[0]);
-                ImGui::ColorEdit4("End", &particleSystem.endColor()[0]);
-
-                ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25);
-                ImGui::Text("Initial velocity");
-                ImGui::SameLine();
-                ImGui::Checkbox("Random velocity", &particleSystem.randomVelocity());
-                ImGui::BeginDisabled(particleSystem.randomVelocity());
-                ImGui::DragFloat("vx", &particleSystem.initialVelocity()[0], 0.0001, -0.05f, 0.05f);
-                ImGui::SameLine();
-                ImGui::DragFloat("vy", &particleSystem.initialVelocity()[1], 0.0001, -0.05f, 0.05f);
-                ImGui::SameLine();
-                ImGui::DragFloat("vz", &particleSystem.initialVelocity()[2], 0.0001, -0.05f, 0.05f);
-                ImGui::EndDisabled();
-
-                ImGui::Text("Acceleration");
-                ImGui::SameLine();
-                ImGui::Checkbox("Random acceleration", &particleSystem.randomAcceleration());
-                ImGui::BeginDisabled(particleSystem.randomAcceleration());
-                ImGui::DragFloat("ax", &particleSystem.acceleration()[0], 0.00001, -0.0005f, 0.0005f, "%.4f");
-                ImGui::SameLine();
-                ImGui::DragFloat("ay", &particleSystem.acceleration()[1], 0.00001, -0.0005f, 0.0005f, "%.4f");
-                ImGui::SameLine();
-                ImGui::DragFloat("az", &particleSystem.acceleration()[2], 0.00001, -0.0005f, 0.0005f, "%.4f");
-                ImGui::EndDisabled();
-                ImGui::PopItemWidth();
-
-                ImGui::SliderFloat("Scale", &particleSystem.scale(), 0.f, 0.05f);
-                ImGui::SliderInt("Spawn count", &particleSystem.spawnCount(), 1, 1000);
-                ImGui::SliderInt("Life time [s]", &particleSystem.totalLifetimeSeconds(), 0, 100);
-                ImGui::RadioButton("Square", &particleSystem.particleShape(), 0); ImGui::SameLine(); ImGui::RadioButton("Circle", &particleSystem.particleShape(), 1); ImGui::SameLine(); ImGui::RadioButton("Triangle", &particleSystem.particleShape(), 2);
-                ImGui::SliderFloat("Thickness", &particleSystem.shapeThickness(), 0.0f, 1.f);
-
-                ImGui::Checkbox("Gaussian blur", &blur);
-                ImGui::BeginDisabled(!blur);
-                ImGui::SliderInt("Iterations", &gaussianBlur.iterations(), 1, 20);
-                ImGui::Checkbox("Bloom", &bloom);
-                ImGui::BeginDisabled(!bloom);
-                ImGui::SliderFloat("Factor", &additiveBlend.factor(), 0.0f, 10.f);
-                ImGui::EndDisabled();
-                ImGui::EndDisabled();
-
-                ImGui::End();
+                quadTextureShader.use();
+                glBindVertexArray(quad.VAO()); gl::checkError();
+                glActiveTexture(GL_TEXTURE0); gl::checkError();
+                glBindTexture(GL_TEXTURE_2D, finalTexture); gl::checkError();
+                glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0); gl::checkError();
+                glUseProgram(0);
+                gl::checkError();
             }
 
-            ImGui::Render();
-            ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            {
+                ImGui_ImplOpenGL3_NewFrame();
+                ImGui_ImplGlfw_NewFrame();
+                ImGui::NewFrame();
+
+                if (show_demo_window)
+                    ImGui::ShowDemoWindow(&show_demo_window);
+
+                // camera ui
+                {
+                    static float f = 0.0f;
+                    static int counter = 0;
+
+                    ImGui::Begin("Camera");
+
+                    ImGui::SliderFloat("Movement speed", &camera.speedMultiplier(), 0.0f, 100.0f);
+                    ImGui::SliderFloat3("Position", &camera.position()[0], -50.f, 50.f);
+                    ImGui::SliderFloat("FOV", &camera.fov(), 1.0f, 90.0f);
+
+                    ImGui::End();
+                }
+
+                // fps plot
+                {
+                    ImGui::Begin("FPS");
+                    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+                    ImGui::PlotLines("", &fpsValues[0], fpsValues.size(), 0, nullptr, 1.f, 144.0f, ImVec2(0, 100.0f));
+                    ImGui::PlotLines("draw [ms]", &particlesDrawTimes[0], particlesDrawTimes.size(), 0, nullptr, 0.f, 16.f, ImVec2(0, 100.f));
+                    ImGui::End();
+                }
+
+                // particle system
+                {
+                    ImGui::Begin("Particle system");
+                    ImGui::Text((std::string("Alive particles: ") + std::to_string(particleSystem.aliveParticlesCount())).c_str());
+                    ImGui::ColorEdit4("Start", &particleSystem.startColor()[0]);
+                    ImGui::ColorEdit4("End", &particleSystem.endColor()[0]);
+
+                    ImGui::PushItemWidth(ImGui::GetWindowWidth() * 0.25);
+                    ImGui::Text("Initial velocity");
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Random velocity", &particleSystem.randomVelocity());
+                    ImGui::BeginDisabled(particleSystem.randomVelocity());
+                    ImGui::DragFloat("vx", &particleSystem.initialVelocity()[0], 0.0001, -0.05f, 0.05f);
+                    ImGui::SameLine();
+                    ImGui::DragFloat("vy", &particleSystem.initialVelocity()[1], 0.0001, -0.05f, 0.05f);
+                    ImGui::SameLine();
+                    ImGui::DragFloat("vz", &particleSystem.initialVelocity()[2], 0.0001, -0.05f, 0.05f);
+                    ImGui::EndDisabled();
+
+                    ImGui::Text("Acceleration");
+                    ImGui::SameLine();
+                    ImGui::Checkbox("Random acceleration", &particleSystem.randomAcceleration());
+                    ImGui::BeginDisabled(particleSystem.randomAcceleration());
+                    ImGui::DragFloat("ax", &particleSystem.acceleration()[0], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                    ImGui::SameLine();
+                    ImGui::DragFloat("ay", &particleSystem.acceleration()[1], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                    ImGui::SameLine();
+                    ImGui::DragFloat("az", &particleSystem.acceleration()[2], 0.00001, -0.0005f, 0.0005f, "%.4f");
+                    ImGui::EndDisabled();
+                    ImGui::PopItemWidth();
+
+                    ImGui::SliderFloat("Scale", &particleSystem.scale(), 0.f, 0.05f);
+                    ImGui::SliderInt("Spawn count", &particleSystem.spawnCount(), 1, 1000);
+                    ImGui::SliderInt("Life time [s]", &particleSystem.totalLifetimeSeconds(), 0, 100);
+                    ImGui::RadioButton("Square", &particleSystem.particleShape(), 0); ImGui::SameLine(); ImGui::RadioButton("Circle", &particleSystem.particleShape(), 1); ImGui::SameLine(); ImGui::RadioButton("Triangle", &particleSystem.particleShape(), 2);
+                    ImGui::SliderFloat("Thickness", &particleSystem.shapeThickness(), 0.0f, 1.f);
+
+                    ImGui::Checkbox("Gaussian blur", &blur);
+                    ImGui::BeginDisabled(!blur);
+                    ImGui::SliderInt("Iterations", &gaussianBlur.iterations(), 1, 20);
+                    ImGui::Checkbox("Bloom", &bloom);
+                    ImGui::BeginDisabled(!bloom);
+                    ImGui::SliderFloat("Factor", &additiveBlend.factor(), 0.0f, 10.f);
+                    ImGui::EndDisabled();
+                    ImGui::EndDisabled();
+
+                    ImGui::End();
+                }
+
+                ImGui::Render();
+                ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+            }
+
+            glfwSwapBuffers(window);
+            glfwPollEvents();
         }
 
-        glfwSwapBuffers(window);
-        glfwPollEvents();
+        ImGui_ImplOpenGL3_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
     }
-
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
 
     glfwTerminate();
     return 0;

@@ -49,13 +49,12 @@ public:
 
 	~TexturedQuad()
 	{
-		// TODO
-		//glDeleteBuffers(1, &_VBO);
-		//gl::checkError();
-		//glDeleteBuffers(1, &_EBO);
-		//gl::checkError();
-		//glDeleteVertexArrays(1, &_VAO);
-		//gl::checkError();
+		glDeleteBuffers(1, &_VBO);
+		gl::checkError();
+		glDeleteBuffers(1, &_EBO);
+		gl::checkError();
+		glDeleteVertexArrays(1, &_VAO);
+		gl::checkError();
 	}
 
 	auto VAO() const { return _VAO; }

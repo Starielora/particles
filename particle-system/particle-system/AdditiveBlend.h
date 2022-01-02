@@ -23,6 +23,13 @@ public:
 		shader.setInt("bloomBlur", 1);
 	}
 
+	~AdditiveBlend()
+	{
+		glDeleteFramebuffers(1, &FBO); gl::checkError();
+		glDeleteTextures(1, &textureId); gl::checkError();
+		glDeleteVertexArrays(1, &quadVAO); gl::checkError();
+	}
+
 	auto texture() { return textureId; }
 	auto& factor() { return _factor; }
 
@@ -49,6 +56,8 @@ public:
 		gl::checkError();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gl::checkError();
+		glUseProgram(0);
 		gl::checkError();
 	}
 

@@ -26,6 +26,15 @@ public:
 	{
 	}
 
+	~GaussianBlur()
+	{
+		unsigned fbos[] = { horizontalFBO, verticalFBO };
+		unsigned textures[] = { horizontalBlurTexture, verticalBlurTexture };
+		glDeleteFramebuffers(2, fbos); gl::checkError();
+		glDeleteTextures(2, textures); gl::checkError();
+		glDeleteVertexArrays(1, &quadVAO); gl::checkError();
+	}
+
 	auto texture() { return horizontalBlurTexture; }
 	auto& iterations() { return _iterations; }
 
@@ -78,6 +87,8 @@ public:
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		gl::checkError();
 		glBindVertexArray(0);
+		gl::checkError();
+		glUseProgram(0);
 		gl::checkError();
 	}
 

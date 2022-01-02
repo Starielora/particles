@@ -113,42 +113,54 @@ public:
 
 		instancesData.resize(pool);
 
-		glBindVertexArray(VAO);
-		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
+		glBindVertexArray(VAO); gl::checkError();
+		glBindBuffer(GL_ARRAY_BUFFER, VBO); gl::checkError();
+		glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW); gl::checkError();
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); gl::checkError();
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDICES), INDICES, GL_STATIC_DRAW); gl::checkError();
 
-		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0);
-		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (const void*)0); gl::checkError();
+		glEnableVertexAttribArray(0); gl::checkError();
 
-		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * particlesLimit, nullptr, GL_DYNAMIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, instanceVBO); gl::checkError();
+		glBufferData(GL_ARRAY_BUFFER, sizeof(InstanceData) * particlesLimit, nullptr, GL_DYNAMIC_DRAW); gl::checkError();
 
-		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(0 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(0 * sizeof(glm::vec4))); gl::checkError();
+		glEnableVertexAttribArray(1); gl::checkError();
 
-		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(1 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(1 * sizeof(glm::vec4))); gl::checkError();
+		glEnableVertexAttribArray(2); gl::checkError();
 
-		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(2 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(2 * sizeof(glm::vec4))); gl::checkError();
+		glEnableVertexAttribArray(3); gl::checkError();
 
-		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(3 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(4);
+		glVertexAttribPointer(4, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(3 * sizeof(glm::vec4))); gl::checkError();
+		glEnableVertexAttribArray(4); gl::checkError();
 
-		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(4 * sizeof(glm::vec4)));
-		glEnableVertexAttribArray(5);
+		glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, sizeof(InstanceData), (const void*)(4 * sizeof(glm::vec4))); gl::checkError();
+		glEnableVertexAttribArray(5); gl::checkError();
 
-		glVertexAttribDivisor(1, 1);
-		glVertexAttribDivisor(2, 1);
-		glVertexAttribDivisor(3, 1);
-		glVertexAttribDivisor(4, 1);
-		glVertexAttribDivisor(5, 1);
+		glVertexAttribDivisor(1, 1); gl::checkError();
+		glVertexAttribDivisor(2, 1); gl::checkError();
+		glVertexAttribDivisor(3, 1); gl::checkError();
+		glVertexAttribDivisor(4, 1); gl::checkError();
+		glVertexAttribDivisor(5, 1); gl::checkError();
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0); gl::checkError();
+		glBindVertexArray(0); gl::checkError();
+	}
+
+	~InstancedParticleSystem()
+	{
+		glDeleteFramebuffers(1, &FBO); gl::checkError();
+
+		glDeleteTextures(1, &textureId); gl::checkError();
+
+		unsigned buffers[] = { instanceVBO, EBO, VBO };
+		glDeleteBuffers(3, buffers); gl::checkError();
+
+		glDeleteVertexArrays(1, &VAO); gl::checkError();
 	}
 
 	void draw(glm::mat4 view, glm::mat4 projection, float currentTime)
@@ -210,6 +222,8 @@ public:
 		gl::checkError();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		gl::checkError();
+		glUseProgram(0);
 		gl::checkError();
 	}
 
