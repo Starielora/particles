@@ -10,12 +10,9 @@ project(particles)
         src/AdditiveBlend.h
         src/BatchParticleSystem.h
         src/Camera.h
-        src/Containers.h
         src/GaussianBlur.h
-        src/Grid.h
         src/InstancedParticleSystem.h
         src/OpenGLUtils.h
-        src/Particle.h
         src/Shader.h
         src/SimpleParticleSystem.h
         src/TexturedQuad.h
